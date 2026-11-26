@@ -146,7 +146,7 @@ def render(p, q):
 <div class="note">Labels: {tag('F')} verified fact from a primary source · {tag('S')} published figure read from a secondary page · {tag('E')} estimate derived from sources · {tag('J')} analyst judgment. Ranges multiply all lows or all highs together, so they are wider than the true uncertainty.</div></div>"""]
 
     # --- criteria
-    rows = "".join(f'<tr><td>{c["kind"]}</td><td>{e(c["text"][:300])}</td><td class="small">{", ".join(c["tags"])}</td></tr>' for c in p["criteria"][:24])
+    rows = "".join(f'<tr><td>{c["kind"]}</td><td>{e(c["text"][:700])}</td><td class="small">{", ".join(c["tags"])}</td></tr>' for c in p["criteria"][:24])
     out.append(f'<div class="card"><h2>1. Key eligibility criteria (parsed from the public record)</h2><table><tr><th>Type</th><th>Criterion</th><th>Drives funnel step</th></tr>{rows}</table>'
                f'<p class="small mute">Parsed with simple rules. The product would use AI to read a full protocol and map each criterion to a funnel step.</p></div>')
 
@@ -213,7 +213,7 @@ def render(p, q):
     hidden3 = "".join(f'<input type="hidden" name="{k_}" value="{e(v)}">' for k_, v in q.items() if k_ not in ("target_n", "sites", "ramp", "enrol_fraction"))
     out.append(f"""<div class="card" id="enrol"><h2>5. Enrolment estimate {tag('E')}</h2>
 <p class="small mute">Benchmark = patients per site per month in finished industry phase 2/3 trials (started 2012+, actual enrolment, ≥5 sites). Basis: <b>{e(b['basis'])}</b> (n={b['n']}). For comparison, all similar EGFR trials: median {b['all']['median']:.3f} (n={b['all']['n']}).
-Assumes enrolment ran for {p['enrol_fraction']:.0%} of the start-to-primary-completion window {tag('J')}; listed sites may not all have enrolled.</p>
+Assumes enrolment ran for {p['enrol_fraction']:.0%} of the start-to-primary-completion window {tag('J')}; listed sites may not all have enrolled. <b>Back-test of this method</b> on finished trials (BACKTEST.md): within ±30% of the real pace for 20% of EGFR lung cancer trials, 48% myasthenia gravis, 23% atopic dermatitis; within 2x for 53–81%. Treat the months as a wide range.</p>
 <div class="grid2"><div>{svg_curves(sc['runs'], sc['n'], win)}</div><div>
 <form action="/pack#enrol">{hidden3}<table>
 <tr><td>Target patients</td><td><input type="number" name="target_n" value="{sc['n']}"></td></tr>
