@@ -7,107 +7,24 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import pack as packmod
 
-NAME = "FeasiblePack"  # placeholder working name
+from .ui import CSS, NAME, LEGEND, e, fmt, link_nct, page, pct, tag  # noqa: F401
 DEFAULT_NCT = "NCT07185997"
 EXAMPLES = [
     ("NCT07185997", "ArriVent · Phase 3 · lung cancer", "First-line EGFR PACC-mutant NSCLC (ALPACCA). Full pack with curated patient numbers.", "Full demo", True),
     ("NCT06452277", "Bayer · Phase 3 · lung cancer", "Sevabertinib vs standard care in HER2-mutant NSCLC. Competitors, sites and pace; you fill in patient numbers.", "Partial", False),
     ("NCT06463587", "Merck KGaA · Phase 3 · rare disease", "Oral cladribine in generalised myasthenia gravis. Competitors, sites and pace; you fill in patient numbers.", "Partial", False),
 ]
-e = html.escape
 IN_TRIAL = "<span class='pill ok'>in trial</span>"
 
-CSS = """
-:root{--ink:#0f1b2d;--ink2:#334155;--mute:#64748b;--line:#e2e8f0;--bg:#f4f6fa;--card:#fff;
---navy:#0b1f3a;--acc:#0f766e;--acc2:#14b8a6;--accbg:#e6f6f4;--blue:#2563eb;--amber:#b45309;--amberbg:#fef3c7;--red:#b91c1c;--redbg:#fee2e2;--green:#15803d;--greenbg:#dcfce7;
---shadow:0 1px 2px rgba(15,27,45,.06),0 4px 16px rgba(15,27,45,.06);--r:14px}
-*{box-sizing:border-box}html{scroll-behavior:smooth}
-body{margin:0;font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
-a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
-.top{background:var(--navy);color:#fff;padding:0 28px;height:60px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:#fff}.logo:hover{text-decoration:none}
-.logo i{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--acc2),#3b82f6);display:inline-block}
-.top .tag2{font-size:12px;color:#cbd5e1;border:1px solid #334155;border-radius:20px;padding:2px 10px}
-.top .sp{flex:1}.top a.l{color:#e2e8f0;font-size:14px}
-.wrap{max-width:1200px;margin:0 auto;padding:28px 20px 80px}
-.layout{display:grid;grid-template-columns:200px 1fr;gap:28px}
-.side{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:2px}
-.side a{color:var(--ink2);padding:7px 12px;border-radius:8px;font-size:14px}.side a:hover{background:#e9eef5;text-decoration:none}
-.side .sbtn{margin-top:12px;background:var(--acc);color:#fff;text-align:center}.side .sbtn:hover{background:#0d5f59}
-.layout>main{min-width:0}@media(max-width:900px){.layout{grid-template-columns:1fr}.side{display:none}.wrap{padding:16px 14px 60px}.hero{padding:20px}.card{padding:18px 16px}.homehero h1{font-size:28px}}
-.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:24px 26px;margin:0 0 22px}
-h1{font-size:26px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}h2{font-size:19px;margin:0 0 4px;letter-spacing:-.01em}
-h3{font-size:15px;margin:20px 0 8px}.sub{color:var(--mute);font-size:14px;margin:0 0 16px}
-.mute{color:var(--mute)}.small{font-size:13px}.xs{font-size:12px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}.chip{background:#eef2f7;color:var(--ink2);border-radius:20px;padding:3px 11px;font-size:13px}
-.hero{background:linear-gradient(135deg,#0b1f3a 0%,#123a5c 60%,#0f766e 140%);color:#fff;border-radius:var(--r);padding:28px 30px;margin-bottom:22px;box-shadow:var(--shadow)}
-.hero h1{color:#fff;font-size:22px}.hero .chip{background:rgba(255,255,255,.12);color:#e2e8f0}.hero a{color:#99f6e4}
-.verdict{display:inline-flex;align-items:center;gap:8px;font-weight:600;border-radius:22px;padding:5px 14px;font-size:14px;margin-bottom:12px}
-.v-high{background:#fecaca;color:#7f1d1d}.v-med{background:#fde68a;color:#78350f}.v-low{background:#bbf7d0;color:#14532d}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}@media(max-width:900px){.kpis{grid-template-columns:1fr 1fr}}
-.kpi{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 18px 16px;border-top:4px solid var(--acc2)}
-.kpi .v{font-size:30px;font-weight:700;letter-spacing:-.02em}.kpi .r{font-size:13px;color:var(--mute);font-weight:500}
-.kpi .l{font-size:13px;color:var(--ink2);margin-top:4px}.kpi.warn{border-top-color:#f59e0b}.kpi.bad{border-top-color:#ef4444}
-.insights{display:grid;gap:10px}.ins{display:flex;gap:12px;align-items:flex-start;background:#f8fafc;border-radius:10px;padding:12px 14px}
-.ins b.n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
-table{border-collapse:collapse;width:100%;font-size:13.5px}th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
-th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;background:#f8fafc}
-td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}tr:hover td{background:#fafcff}
-.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:5px;padding:1px 6px;vertical-align:1px}
-.F{background:var(--greenbg);color:var(--green)}.S{background:#dbeafe;color:#1d4ed8}.E{background:var(--amberbg);color:var(--amber)}.J{background:var(--redbg);color:var(--red)}
-.Direct{background:var(--redbg);color:var(--red)}.Partial{background:var(--amberbg);color:var(--amber)}.Low{background:#f1f5f9;color:var(--mute)}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--mute);margin-top:14px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr}}
-.panel{border:1px solid var(--line);border-radius:12px;padding:16px}
-.funnel{margin:6px 0 12px}.frow{display:grid;grid-template-columns:minmax(0,1.2fr) 1fr 70px;gap:10px;align-items:center;font-size:12.5px;margin:5px 0;color:var(--ink2)}
-.frow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.frow .t{height:16px;background:#f1f5f9;border-radius:5px;overflow:hidden}.frow .t div{height:100%;border-radius:5px}
-.frow b{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
-.card{scroll-margin-top:80px}.tw{overflow-x:auto}
-.bar{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--acc2),var(--acc))}
-.barrow{display:grid;grid-template-columns:150px 1fr 60px;gap:10px;align-items:center;font-size:13px;margin:6px 0}
-.barrow .t{height:10px;background:#eef2f7;border-radius:5px;overflow:hidden}
-details{border:1px solid var(--line);border-radius:12px;margin-top:16px}summary{cursor:pointer;padding:12px 16px;font-weight:600;font-size:14px;list-style:none}
-summary::before{content:"▸ ";color:var(--acc)}details[open] summary::before{content:"▾ "}details>div{padding:0 16px 16px}
-input[type=text],input[type=number],select{padding:7px 10px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;font-size:14px;background:#fff}
-input.sm{width:96px;padding:4px 8px;font-size:13px}
-button,.btn{background:var(--acc);color:#fff;border:0;border-radius:9px;padding:9px 18px;font:inherit;font-weight:600;cursor:pointer;display:inline-block}
-button:hover,.btn:hover{background:#0d5f59;text-decoration:none}.btn.ghost{background:#fff;color:var(--acc);border:1px solid #99d5cf}
-.site{border:1px solid var(--line);border-radius:12px;padding:14px}.site b{display:block;font-size:14px}
-.pill{display:inline-block;font-size:12px;border-radius:12px;padding:1px 8px;background:#f1f5f9;color:var(--ink2);margin:6px 4px 0 0}
-.pill.ok{background:var(--greenbg);color:var(--green)}.pill.warn{background:var(--amberbg);color:var(--amber)}
-.scen{border-radius:12px;padding:14px;text-align:center;border:1px solid var(--line)}.scen .v{font-size:26px;font-weight:700}
-.note{background:#f8fafc;border-left:3px solid var(--acc2);border-radius:6px;padding:10px 14px;font-size:13px;color:var(--ink2)}
-/* home */
-.homehero{text-align:center;padding:56px 20px 40px}.homehero h1{font-size:38px;max-width:760px;margin:0 auto 14px}
-.homehero p{font-size:18px;color:var(--ink2);max-width:680px;margin:0 auto 26px}
-.search{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.search input{width:260px;font-size:17px;padding:11px 14px}.search button{font-size:16px;padding:11px 22px}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}@media(max-width:800px){.steps{grid-template-columns:1fr}}
-.step b.n{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--accbg);color:var(--acc);align-items:center;justify-content:center;margin-bottom:8px}
-.ex{display:block;border:1px solid var(--line);border-radius:12px;padding:16px;color:var(--ink);transition:.15s}.ex:hover{border-color:var(--acc2);box-shadow:var(--shadow);text-decoration:none}
-.ex .id{font-weight:700;color:var(--acc)}
-.what{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media(max-width:800px){.what{grid-template-columns:1fr}}
-.what div{background:#f8fafc;border-radius:12px;padding:14px}.what b{display:block;margin-bottom:4px}
-footer{color:var(--mute);font-size:12px;text-align:center;margin-top:30px}
-@media print{.top,.side,.noprint,details summary{display:none}.layout{display:block}body{background:#fff}.card,.kpi{box-shadow:none;border:1px solid var(--line)}
-details{border:0}details>div{display:block!important}.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-"""
 
 
-def fmt(x, d=0):
-    return "n/a" if x is None else f"{x:,.{d}f}"
 
 
-def pct(x):
-    return f"{x*100:.1f}%" if x < 0.1 else f"{x*100:.0f}%"
 
 
-def tag(t):
-    return f'<span class="tag {t}" title="{ {"F":"verified fact","S":"published figure","E":"estimate","J":"judgment"}[t] }">{t}</span>'
 
 
-def link_nct(n):
-    return f'<a href="https://clinicaltrials.gov/study/{n}" target="_blank">{n}</a>'
+
 
 
 def src_link(p, key):
@@ -115,22 +32,15 @@ def src_link(p, key):
     return f'<a href="{e(url)}" target="_blank" title="{e(label)}">source ↗</a>' if url else '<span class="mute xs">judgment</span>'
 
 
-def page(title, body, nav=""):
-    return f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{e(title)}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>{CSS}</style></head><body>
-<div class="top"><a class="logo" href="/"><i></i>{NAME}</a><span class="tag2">Demo · public data only</span><span class="sp"></span>{nav}<a class="l" href="/">New pack</a></div>
-{body}</body></html>"""
 
 
 # ------------------------------------------------------------------ home
 
-def home():
+def trial_home():
     ex = "".join(f"""<a class="ex" href="/pack?nct={n}"><div class="id">{n} <span class="tag {'F' if full else 'S'}">{badge}</span></div>
 <div class="small mute" style="margin:4px 0 6px">{e(who)}</div><div class="small">{e(desc)}</div></a>""" for n, who, desc, badge, full in EXAMPLES)
-    return page(NAME, f"""<div class="wrap">
-<div class="homehero"><h1>Know if your trial can enrol before you call a CRO</h1>
+    return page("Trial lookup · " + NAME, active="trial", body=f"""<div class="wrap">
+<div class="homehero"><span class="eyebrow">Trial lookup</span><h1>Check a registered trial in seconds</h1>
 <p>Type a trial's ClinicalTrials.gov number. In seconds you get a feasibility pack: how many patients exist,
 who else is recruiting them, which sites have done this before, and how long enrolment is likely to take.</p>
 <form class="search" action="/pack"><input type="text" name="nct" value="{DEFAULT_NCT}" aria-label="NCT number"><button>Build feasibility pack</button></form>
@@ -369,7 +279,7 @@ def render(p, q):
 <h3>Not built yet</h3><ul class="small mute"><li>AI protocol reader</li><li>Curated epidemiology beyond this one indication</li><li>Licensed claims/EHR counts to check patient numbers</li><li>Investigator names, per-site enrolment (paid data)</li><li>Race/ethnicity mix vs sites</li><li>Expert review step and Word/PDF export</li></ul></div>""")
 
     side = """<nav class="side noprint"><a href="#summary">Summary</a><a href="#pop">Patients</a><a href="#comp">Competing trials</a><a href="#sites">Sites</a><a href="#enrol">Enrolment</a><a href="#crit">Criteria</a><a href="#src">Sources</a><a class="sbtn" href="javascript:print()">Save as PDF</a></nav>"""
-    return page(f"{nct} feasibility pack", f'<div class="wrap"><div class="layout">{side}<main>{"".join(out)}</main></div></div>')
+    return page(f"{nct} feasibility pack", active="trial", body=f'<div class="wrap"><div class="layout">{side}<main>{"".join(out)}</main></div></div>')
 
 
 class Handler(BaseHTTPRequestHandler):
