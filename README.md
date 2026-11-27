@@ -9,6 +9,7 @@ Separate from Symelix: no shared code, accounts or database. No patient-level da
 python3 app.py serve                 # http://localhost:8095 (pack for NCT07185997 opens from the home page)
 python3 app.py pack NCT07185997      # key numbers in the terminal
 python3 -m unittest discover -s tests   # 8 tests
+python3 scripts/backtest.py          # enrolment back-test (needs internet)
 V95_OFFLINE=1 python3 app.py serve   # use only the bundled snapshot (no internet)
 python3 app.py snapshot NCT07185997  # refresh the bundled ClinicalTrials.gov snapshot
 ```
@@ -34,6 +35,9 @@ first-line, EGFR PACC-mutant advanced NSCLC, target 480, 141 sites in 17 countri
 - China pool ~8x the US (EGFR mutations 2–3x more common), which fits the sponsor's 48 China sites.
 - 27 direct competing trials active (13 industry) [F count, J tier]; 189 partial.
 - Benchmarks (5 finished rare-subtype trials, incl. ArriVent's own exon 20 phase 3): ~0.08 patients/site/month -> ~47 months to 480 with 141 sites, against 38 months posted from start to primary completion (which also covers follow-up). Plan looks tight [J].
+
+## Accuracy check
+`python3 scripts/backtest.py` back-tests the enrolment pace on finished trials in 3 indications (no look-ahead). Result 2026-11-26: within ±30% for 20–48% of trials, within 2x for 53–81%; leans optimistic in oncology and atopic dermatitis. Details: [BACKTEST.md](BACKTEST.md).
 
 ## Known limits
 - Only one curated epidemiology profile; other NCT IDs get a generic funnel you fill in.

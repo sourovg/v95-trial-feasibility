@@ -47,9 +47,12 @@ def split_criteria(text):
         if ("inclusion" in low or "eligibility criteria" in low) and len(line) < 60:
             cur = inc
             continue
+        clean = line.replace("\\_", "_").replace("\\>", ">").replace("\\<", "<")
+        target = cur if cur is not None else inc
         if line.startswith(("*", "-", "•")) or re.match(r"^\d+[.)]", line):
-            item = re.sub(r"^(\*|-|•|\d+[.)])\s*", "", line).replace("\\_", "_").replace("\\>", ">").replace("\\<", "<")
-            (cur if cur is not None else inc).append(item)
+            target.append(re.sub(r"^(\*|-|•|\d+[.)])\s*", "", clean))
+        elif target and target[-1].endswith(":"):
+            target[-1] += " " + clean  # e.g. "List of eligible mutations:" followed by a plain paragraph
     tagged = []
     for kind, items in (("Include", inc), ("Exclude", exc)):
         for it in items:
