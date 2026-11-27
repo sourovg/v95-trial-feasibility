@@ -1,28 +1,44 @@
-# V95 trial feasibility: half-day demo
+# Cohortia (V95): study feasibility from request to proposal
 
-Working name **FeasiblePack** (placeholder). Builds a feasibility pack for one public clinical trial from
-public, aggregate data only. Independent tool; not affiliated with any sponsor; not medical or regulatory advice.
-Separate from Symelix: no shared code, accounts or database. No patient-level data.
+Working name **Cohortia** (not trademark-checked). A feasibility workflow for pharma and CRO teams:
+describe a study (RFP-style form or free text), and the app runs the four feasibility pillars
+(benchmark analysis, country evaluation, investigator insights with an auto-designed survey, scenario and risk)
+and drafts a proposal. Public, aggregate data only. Independent tool; separate from Symelix; not medical or regulatory advice.
 
 ## Run it (Mac, nothing to install)
 ```
-python3 app.py serve                 # http://localhost:8095 : start page explains the tool and links 3 example trials
-python3 app.py pack NCT07185997      # key numbers in the terminal
-python3 -m unittest discover -s tests   # 8 tests
-python3 scripts/backtest.py          # enrolment back-test (needs internet)
-V95_OFFLINE=1 python3 app.py serve   # use only the bundled snapshot (no internet)
-python3 app.py snapshot NCT07185997  # refresh the bundled ClinicalTrials.gov snapshot
+python3 app.py serve                    # http://localhost:8095
+python3 -m unittest discover -s tests   # 14 tests (offline)
+V95_OFFLINE=1 python3 app.py serve      # bundled snapshot only (worked example + 3 demo trials)
+python3 app.py snapshot-all             # refresh the bundled snapshot
+python3 app.py pack NCT07185997         # trial lookup numbers in the terminal
+python3 scripts/backtest.py             # enrolment back-test (needs internet)
 ```
-Python 3.10+ standard library only. Live calls go to the public ClinicalTrials.gov API v2 and are cached
-in `data/cache/` for 7 days (git-ignored). `data_snapshot/` holds a copy fetched 2026-11-26 so the demo works offline.
+Python 3.10+ standard library only. Optional AI: `pip install anthropic` and set `ANTHROPIC_API_KEY`; Claude then
+helps read the request, adds up to 4 tailored survey questions and drafts the summary. Without it, rules do everything
+(set `COHORTIA_AI=0` to force rules). Projects, invitations and survey answers are kept in `data/cohortia.db` (git-ignored).
 
 ## How to use it
-1. Open http://localhost:8095. Type a trial's ClinicalTrials.gov ID (NCT number) or click an example.
-2. Read the verdict banner and the four key numbers at the top of the pack, then the three takeaways.
-3. Open "See every assumption" to change any funnel value, or change sites/ramp-up in Enrolment, and rebuild. Use "Save as PDF" to export.
+1. Open http://localhost:8095 and click **Open the worked example** (Latin America malnutrition study), or **Start a feasibility request**.
+2. Paste the request text and press **Auto-fill from description**; check the fields (area, searchable indication, study type, design, countries, targets) and **Create feasibility project**.
+3. Work through the tabs: **Benchmark**, **Countries** (change weights and assumptions), **Investigators** (pick sites, add them to the survey list, send (simulated), open a survey link to answer as an investigator, or fill demo responses), **Scenario & risk** (sample size, sites, pace), **Proposal** (Save as PDF).
+4. **Trial lookup** (top bar) keeps the original NCT-number pack.
 
-Examples bundled for offline use: NCT07185997 (full, curated patient numbers), NCT06452277 and NCT06463587 (competitors, sites and pace; patient numbers left for you).
+Sending is simulated: nothing is emailed. See [docs/round2-notes.md](docs/round2-notes.md) for data sources, what is automated, and the legal points for real sending.
 
+## Data sources
+| Source | Use | How |
+|---|---|---|
+| ClinicalTrials.gov API v2 | Similar interventional and observational studies by country, sites, public study officials, enrolment pace | live, cached 7 days |
+| ISRCTN API | International registry incl. observational studies | live |
+| PubMed E-utilities | Published papers on the topic, per country (affiliation) | live |
+| GLOBOCAN 2024 (IARC/WHO) | New cancer cases by site, 24 countries | bundled (`data_snapshot/globocan2024.json`) |
+| Curated literature | ELAN, IBRANUTRI, Santos 2022 (GLIM), nutritionDay LatAm; checked against PubMed abstracts | bundled |
+| Linked only | WHO ICTRP (ReBEC, REPEC, 15+ registries), EU CTIS, HMA-EMA RWD catalogues, ISPOR/ISPE RWE registry | links |
+
+---
+
+# Trial lookup (round 1)
 ## Demo trial
 **NCT07185997, ALPACCA** (ArriVent BioPharma, a small/mid sponsor): phase 3, firmonertinib vs osimertinib/afatinib,
 first-line, EGFR PACC-mutant advanced NSCLC, target 480, 141 sites in 17 countries.
