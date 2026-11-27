@@ -46,6 +46,9 @@ first-line, EGFR PACC-mutant advanced NSCLC, target 480, 141 sites in 17 countri
 ## Accuracy check
 `python3 scripts/backtest.py` back-tests the enrolment pace on finished trials in 3 indications (no look-ahead). Result 2026-11-26: within ±30% for 20–48% of trials, within 2x for 53–81%; leans optimistic in oncology and atopic dermatitis. Details: [BACKTEST.md](BACKTEST.md).
 
+## Expert review
+A clinical-development or epidemiology expert checks each pack before it is trusted. Sheet: [docs/expert-review-sheet.md](docs/expert-review-sheet.md).
+
 ## Known limits
 - Only one curated epidemiology profile; other NCT IDs get a generic funnel you fill in.
 - Competition tiering is keyword-based and over-inclusive (e.g. broad EGFR trials whose inclusion lists uncommon mutations show as Direct).
