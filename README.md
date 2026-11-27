@@ -6,7 +6,7 @@ Separate from Symelix: no shared code, accounts or database. No patient-level da
 
 ## Run it (Mac, nothing to install)
 ```
-python3 app.py serve                 # http://localhost:8095 (pack for NCT07185997 opens from the home page)
+python3 app.py serve                 # http://localhost:8095 : start page explains the tool and links 3 example trials
 python3 app.py pack NCT07185997      # key numbers in the terminal
 python3 -m unittest discover -s tests   # 8 tests
 python3 scripts/backtest.py          # enrolment back-test (needs internet)
@@ -15,6 +15,13 @@ python3 app.py snapshot NCT07185997  # refresh the bundled ClinicalTrials.gov sn
 ```
 Python 3.10+ standard library only. Live calls go to the public ClinicalTrials.gov API v2 and are cached
 in `data/cache/` for 7 days (git-ignored). `data_snapshot/` holds a copy fetched 2026-11-26 so the demo works offline.
+
+## How to use it
+1. Open http://localhost:8095. Type a trial's ClinicalTrials.gov ID (NCT number) or click an example.
+2. Read the verdict banner and the four key numbers at the top of the pack, then the three takeaways.
+3. Open "See every assumption" to change any funnel value, or change sites/ramp-up in Enrolment, and rebuild. Use "Save as PDF" to export.
+
+Examples bundled for offline use: NCT07185997 (full, curated patient numbers), NCT06452277 and NCT06463587 (competitors, sites and pace; patient numbers left for you).
 
 ## Demo trial
 **NCT07185997, ALPACCA** (ArriVent BioPharma, a small/mid sponsor): phase 3, firmonertinib vs osimertinib/afatinib,

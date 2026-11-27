@@ -116,7 +116,14 @@ def competing(target, studies, profile):
     for t in studies:
         if t["nct"] == target["nct"] or t["status"] not in ACTIVE or t["type"] != "INTERVENTIONAL":
             continue
-        sc, why = score_overlap(t, profile)
+        if profile.get("focus_terms"):
+            sc, why = score_overlap(t, profile)
+        else:  # generic profile: same condition; later-phase trials compete hardest [J]
+            cond = profile.get("search_cond", "").lower()
+            same = any(cond in c.lower() for c in t["conditions"]) or cond in t["title"].lower()
+            late = bool({"PHASE2", "PHASE3"} & set(t["phases"]))
+            sc = (2 if same else 0) + (1 if late else 0)
+            why = (["same condition"] if same else ["related condition"]) + (["phase 2/3"] if late else [])
         keys = {site_key(l) for l in t["locations"]}
         countries = defaultdict(int)
         for l in t["locations"]:
