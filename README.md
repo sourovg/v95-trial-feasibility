@@ -44,7 +44,7 @@ first-line, EGFR PACC-mutant advanced NSCLC, target 480, 141 sites in 17 countri
 - Benchmarks (5 finished rare-subtype trials, incl. ArriVent's own exon 20 phase 3): ~0.08 patients/site/month -> ~47 months to 480 with 141 sites, against 38 months posted from start to primary completion (which also covers follow-up). Plan looks tight [J].
 
 ## Accuracy check
-`python3 scripts/backtest.py` back-tests the enrolment pace on finished trials in 3 indications (no look-ahead). Result 2026-11-26: within ±30% for 20–48% of trials, within 2x for 53–81%; leans optimistic in oncology and atopic dermatitis. Details: [BACKTEST.md](BACKTEST.md).
+`python3 scripts/backtest.py` back-tests the enrolment pace on finished trials in 3 indications (no look-ahead). Result 2026-11-26: within ±30% for 20–48% of trials, within 2x for 53–81%; leans optimistic in oncology and atopic dermatitis. Details: [docs/accuracy-check.md](docs/accuracy-check.md).
 
 ## Expert review
 A clinical-development or epidemiology expert checks each pack before it is trusted. Sheet: [docs/expert-review-sheet.md](docs/expert-review-sheet.md).
